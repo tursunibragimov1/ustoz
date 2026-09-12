@@ -1,25 +1,28 @@
-'use client'
+"use client"
 
-import { useState } from 'react'
-import { ArrowRight, Clock, Calendar, Gauge, Target } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import type { Goal } from '@/lib/ustoz-data'
-
-const bands = ['4.5', '5.0', '5.5', '6.0', '6.5', '7.0', '7.5', '8.0']
-const timeframes = ['2 oy', '3 oy', '4 oy', '6 oy']
-const dailyTimes = ['30 daqiqa', '1 soat', '1.5 soat', '2 soat']
+import { useState } from "react"
+import { ArrowRight, Calendar, Gauge, Target } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import {
+  durationOptions,
+  levelOptions,
+  targetOptions,
+  type Goal,
+  type Level,
+} from "@/lib/ustoz-data"
 
 export function SetupScreen({
+  initial,
   onContinue,
   onBack,
 }: {
+  initial: Goal
   onContinue: (goal: Goal) => void
   onBack: () => void
 }) {
-  const [current, setCurrent] = useState('5.5')
-  const [target, setTarget] = useState('7.0')
-  const [months, setMonths] = useState('4 oy')
-  const [daily, setDaily] = useState('1 soat')
+  const [current, setCurrent] = useState<Level>(initial.current)
+  const [target, setTarget] = useState(initial.target)
+  const [months, setMonths] = useState(initial.months)
 
   return (
     <div className="mx-auto max-w-md px-5 pb-28 pt-6">
@@ -39,22 +42,43 @@ export function SetupScreen({
 
       <div className="mt-6 space-y-5">
         <Field icon={<Gauge className="h-4 w-4" aria-hidden />} label="Hozirgi darajangiz">
-          <Segmented options={bands} value={current} onChange={setCurrent} />
+          <div className="grid grid-cols-3 gap-2">
+            {levelOptions.map((opt) => (
+              <Chip
+                key={opt.value}
+                active={current === opt.value}
+                onClick={() => setCurrent(opt.value)}
+                label={opt.label}
+              />
+            ))}
+          </div>
         </Field>
 
-        <Field icon={<Target className="h-4 w-4" aria-hidden />} label="Maqsad darajangiz">
-          <Segmented options={bands} value={target} onChange={setTarget} highlight />
+        <Field icon={<Target className="h-4 w-4" aria-hidden />} label="Maqsadingiz">
+          <div className="grid grid-cols-2 gap-2">
+            {targetOptions.map((opt) => (
+              <Chip
+                key={opt}
+                active={target === opt}
+                onClick={() => setTarget(opt)}
+                label={opt}
+                highlight
+              />
+            ))}
+          </div>
         </Field>
 
         <Field icon={<Calendar className="h-4 w-4" aria-hidden />} label="Muddat">
-          <Segmented options={timeframes} value={months} onChange={setMonths} wide />
-        </Field>
-
-        <Field
-          icon={<Clock className="h-4 w-4" aria-hidden />}
-          label="Kunlik mashg\u2018ulot vaqti"
-        >
-          <Segmented options={dailyTimes} value={daily} onChange={setDaily} wide />
+          <div className="grid grid-cols-4 gap-2">
+            {durationOptions.map((opt) => (
+              <Chip
+                key={opt}
+                active={months === opt}
+                onClick={() => setMonths(opt)}
+                label={opt}
+              />
+            ))}
+          </div>
         </Field>
       </div>
 
@@ -62,7 +86,7 @@ export function SetupScreen({
         <div className="mx-auto max-w-md px-5 py-4">
           <Button
             size="lg"
-            onClick={() => onContinue({ current, target, months, daily })}
+            onClick={() => onContinue({ current, target, months })}
             className="h-13 w-full rounded-2xl py-3.5 text-base font-semibold shadow-lg shadow-primary/20"
           >
             Darajani aniqlash
@@ -96,41 +120,31 @@ function Field({
   )
 }
 
-function Segmented({
-  options,
-  value,
-  onChange,
+function Chip({
+  active,
+  onClick,
+  label,
   highlight,
-  wide,
 }: {
-  options: string[]
-  value: string
-  onChange: (v: string) => void
+  active: boolean
+  onClick: () => void
+  label: string
   highlight?: boolean
-  wide?: boolean
 }) {
   return (
-    <div className={`grid gap-2 ${wide ? 'grid-cols-2' : 'grid-cols-4'}`}>
-      {options.map((option) => {
-        const active = option === value
-        return (
-          <button
-            key={option}
-            type="button"
-            onClick={() => onChange(option)}
-            aria-pressed={active}
-            className={`rounded-xl border py-2.5 text-sm font-semibold tabular-nums transition-all ${
-              active
-                ? highlight
-                  ? 'border-primary bg-primary text-primary-foreground shadow-sm'
-                  : 'border-primary bg-primary/10 text-primary'
-                : 'border-border bg-background text-muted-foreground hover:border-primary/40 hover:text-foreground'
-            }`}
-          >
-            {option}
-          </button>
-        )
-      })}
-    </div>
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={`rounded-xl border py-2.5 text-center text-sm font-semibold tabular-nums transition-all ${
+        active
+          ? highlight
+            ? "border-primary bg-primary text-primary-foreground shadow-sm"
+            : "border-primary bg-primary/10 text-primary"
+          : "border-border bg-background text-muted-foreground hover:border-primary/40 hover:text-foreground"
+      }`}
+    >
+      {label}
+    </button>
   )
 }

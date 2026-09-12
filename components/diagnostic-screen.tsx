@@ -1,21 +1,27 @@
-'use client'
+"use client"
 
-import { useState } from 'react'
-import { ArrowRight, Check, X, Lightbulb } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { diagnosticQuestions } from '@/lib/ustoz-data'
+import { useState } from "react"
+import { ArrowRight, Check, X, Lightbulb } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { diagnosticQuestions, type Level } from "@/lib/ustoz-data"
+import type { ErrorEntry } from "@/lib/ustoz-store"
 
 export function DiagnosticScreen({
+  level,
   onComplete,
   onXp,
 }: {
-  onComplete: (correct: number, total: number) => void
+  level: Level
+  onComplete: (answers: (number | null)[], errors: ErrorEntry[]) => void
   onXp: (amount: number) => void
 }) {
   const [index, setIndex] = useState(0)
   const [selected, setSelected] = useState<number | null>(null)
   const [locked, setLocked] = useState(false)
-  const [correctCount, setCorrectCount] = useState(0)
+  const [answers, setAnswers] = useState<(number | null)[]>(
+    () => diagnosticQuestions.map(() => null),
+  )
+  const [errors, setErrors] = useState<ErrorEntry[]>([])
 
   const question = diagnosticQuestions[index]
   const total = diagnosticQuestions.length
@@ -26,22 +32,44 @@ export function DiagnosticScreen({
     if (locked) return
     setSelected(i)
     setLocked(true)
+    setAnswers((prev) => {
+      const next = [...prev]
+      next[index] = i
+      return next
+    })
     if (i === question.correctIndex) {
-      setCorrectCount((c) => c + 1)
       onXp(10)
+    } else {
+      // Xatolarni Error Database uchun yozib boramiz.
+      setErrors((prev) => [
+        ...prev,
+        {
+          id: `d-${question.id}-${Date.now()}`,
+          itemId: `diagnostic-${question.id}`,
+          topic: question.skill,
+          skill: question.skill,
+          wrongAnswer: question.options[i],
+          correctAnswer: question.options[question.correctIndex],
+          errorType: "diagnostic",
+          level,
+          attemptCount: 1,
+          createdAt: Date.now(),
+        },
+      ])
     }
   }
 
   function next() {
-    const finalCorrect = correctCount
     if (isLast) {
-      onComplete(finalCorrect, total)
+      onComplete(answers, errors)
       return
     }
     setIndex((n) => n + 1)
     setSelected(null)
     setLocked(false)
   }
+
+  const progress = ((index + (locked ? 1 : 0)) / total) * 100
 
   return (
     <div className="mx-auto max-w-md px-5 pb-28 pt-5">
@@ -55,7 +83,7 @@ export function DiagnosticScreen({
       <div className="mt-3 h-2 overflow-hidden rounded-full bg-muted">
         <div
           className="h-full rounded-full bg-primary transition-all duration-500"
-          style={{ width: `${((index + (locked ? 1 : 0)) / total) * 100}%` }}
+          style={{ width: `${progress}%` }}
         />
       </div>
 
@@ -63,6 +91,13 @@ export function DiagnosticScreen({
         <span className="inline-flex rounded-full bg-accent/60 px-3 py-1 text-xs font-semibold text-accent-foreground">
           {question.skill}
         </span>
+
+        {question.passage && (
+          <blockquote className="mt-4 rounded-2xl border border-border bg-muted/50 p-4 text-sm italic leading-relaxed text-foreground">
+            {question.passage}
+          </blockquote>
+        )}
+
         <h2 className="mt-4 text-balance font-display text-xl font-bold leading-snug tracking-tight">
           {question.question}
         </h2>
@@ -82,21 +117,21 @@ export function DiagnosticScreen({
               disabled={locked}
               className={`flex w-full items-center gap-3 rounded-2xl border p-4 text-left transition-all ${
                 showCorrect
-                  ? 'border-success bg-success/10'
+                  ? "border-success bg-success/10"
                   : showWrong
-                    ? 'border-destructive bg-destructive/10'
+                    ? "border-destructive bg-destructive/10"
                     : isChosen
-                      ? 'border-primary bg-primary/5'
-                      : 'border-border bg-card hover:border-primary/40'
-              } ${locked ? 'cursor-default' : 'cursor-pointer'}`}
+                      ? "border-primary bg-primary/5"
+                      : "border-border bg-card hover:border-primary/40"
+              } ${locked ? "cursor-default" : "cursor-pointer"}`}
             >
               <span
                 className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-sm font-bold ${
                   showCorrect
-                    ? 'bg-success text-success-foreground'
+                    ? "bg-success text-success-foreground"
                     : showWrong
-                      ? 'bg-destructive text-white'
-                      : 'bg-muted text-muted-foreground'
+                      ? "bg-destructive text-white"
+                      : "bg-muted text-muted-foreground"
                 }`}
               >
                 {showCorrect ? (
@@ -119,8 +154,8 @@ export function DiagnosticScreen({
         <div
           className={`mt-5 rounded-2xl border p-4 ${
             isCorrect
-              ? 'border-success/30 bg-success/5'
-              : 'border-warning/40 bg-warning/10'
+              ? "border-success/30 bg-success/5"
+              : "border-warning/40 bg-warning/10"
           }`}
         >
           <div className="flex items-center gap-2">
@@ -147,7 +182,7 @@ export function DiagnosticScreen({
             disabled={!locked}
             className="h-13 w-full rounded-2xl py-3.5 text-base font-semibold shadow-lg shadow-primary/20"
           >
-            {isLast ? 'Natijani ko\u2018rish' : 'Keyingi savol'}
+            {isLast ? "Natijani ko\u2018rish" : "Keyingi savol"}
             <ArrowRight className="h-5 w-5" aria-hidden />
           </Button>
         </div>
