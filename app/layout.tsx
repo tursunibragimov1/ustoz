@@ -11,6 +11,7 @@ export const metadata: Metadata = {
   description:
     'Sun\u2019iy intellekt asosidagi shaxsiy IELTS ustozingiz. Maqsadingizni belgilang, darajangizni aniqlang va shaxsiy o\u2018quv reja bilan orzuingizga yeting.',
   generator: 'v0.app',
+  manifest: '/manifest.json',
 }
 
 export const viewport: Viewport = {
