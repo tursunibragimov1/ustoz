@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ArrowRight, Check, X, Lightbulb, Volume2 } from 'lucide-react'
+import { ArrowRight, Check, X, Lightbulb } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { diagnosticQuestions } from '@/lib/ustoz-data'
 
@@ -60,25 +60,9 @@ export function DiagnosticScreen({
       </div>
 
       <div className="mt-6">
-        <div className="flex items-center justify-between">
-          <span className="inline-flex rounded-full bg-accent/60 px-3 py-1 text-xs font-semibold text-accent-foreground">
-            {question.skill}
-          </span>
-          <button
-            onClick={() => {
-              if (window.speechSynthesis) {
-                window.speechSynthesis.cancel() // Stop any currently playing audio
-                const utterance = new SpeechSynthesisUtterance(question.question)
-                utterance.lang = 'en-US'
-                window.speechSynthesis.speak(utterance)
-              }
-            }}
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors hover:bg-primary/20"
-            title="Savolni eshitish"
-          >
-            <Volume2 className="h-4 w-4" aria-hidden />
-          </button>
-        </div>
+        <span className="inline-flex rounded-full bg-accent/60 px-3 py-1 text-xs font-semibold text-accent-foreground">
+          {question.skill}
+        </span>
         <h2 className="mt-4 text-balance font-display text-xl font-bold leading-snug tracking-tight">
           {question.question}
         </h2>
